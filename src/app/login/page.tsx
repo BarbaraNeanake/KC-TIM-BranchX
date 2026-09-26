@@ -12,7 +12,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <div className="mb-6 flex flex-col items-center text-center text-white">
           <BrandLogo className="mb-4 h-12" />
           <h1 className="text-lg font-extrabold">Branch Geo-Mapping Dashboard</h1>
-          <p className="mt-1 text-xs text-[#CFE0F2]">KCP Jakarta Taman Ismail Marzuki · internal RM/ODP</p>
+          <p className="mt-1 text-xs text-[#CFE0F2]">KCP Jakarta Taman Ismail Marzuki · internal use only</p>
         </div>
         <div className="rounded-2xl bg-surface p-5 shadow-2xl">
           <LoginForm next={typeof next === "string" ? next : "/"} />
