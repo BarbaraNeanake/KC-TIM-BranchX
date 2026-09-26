@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <p className="mt-5 text-center text-[10.5px] leading-relaxed text-[#9FB6D3]">
           Berisi lead scoring internal. Jangan bagikan password. {DISCLAIMER}
         </p>
-      </div>
+      </div>help
     </main>
   );
 }
