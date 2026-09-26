@@ -13,7 +13,7 @@ Tool internal tim RM/ODP Bank Mandiri KCP Jakarta Taman Ismail Marzuki: peta int
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma 7 + SQLite (dev) · react-leaflet · Zod · Plus Jakarta Sans
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma 7 + PostgreSQL (Supabase) · react-leaflet · Zod · Plus Jakarta Sans
 
 ## Menjalankan secara lokal
 
@@ -21,9 +21,9 @@ Prasyarat: Node.js 20+.
 
 ```bash
 npm install                 # juga menjalankan `prisma generate`
-cp .env.example .env        # lalu isi ADMIN_PASSWORD, VIEWER_PASSWORD, SESSION_SECRET
-npm run db:migrate          # buat/terapkan migrasi ke prisma/dev.db
-npm run db:seed             # isi data awal (1 cabang, 12 company, 15 merchant)
+cp .env.example .env        # isi DATABASE_URL, DIRECT_URL (Supabase), ADMIN_PASSWORD, VIEWER_PASSWORD, SESSION_SECRET
+npx prisma migrate deploy   # buat tabel di database
+npm run db:seed             # isi data awal (1 cabang, 12 company, 15 merchant) — hanya untuk DB kosong
 npm run dev                 # http://localhost:3000
 ```
 
@@ -70,37 +70,19 @@ Aturan import:
 - Viewer: hanya `GET`. Admin: `/admin`, mutasi API, dan export CSV.
 - Password bersama per role cukup untuk v1. Untuk skala lebih besar, pertimbangkan akun per RM (mis. Supabase Auth / SSO kantor) supaya ada audit trail per orang.
 
-## Pindah ke Supabase (PostgreSQL)
+## Database (Supabase / PostgreSQL)
 
-Schema sengaja hanya memakai fitur yang ada di SQLite **dan** PostgreSQL.
-
-1. Buat project di Supabase. Salin connection string dari **Connect → ORMs → Prisma**. Pakai URL *pooler* (port 6543, `?pgbouncer=true`) untuk runtime, dan URL *direct/session* (port 5432) untuk migrasi.
-2. Pasang adapter Postgres:
-   ```bash
-   npm install @prisma/adapter-pg pg
-   npm uninstall @prisma/adapter-better-sqlite3
-   ```
-3. Di `prisma/schema.prisma`, ubah `provider = "sqlite"` menjadi `provider = "postgresql"`.
-4. Di `src/lib/prisma.ts`, ganti adapter:
-   ```ts
-   import { PrismaPg } from "@prisma/adapter-pg";
-   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-   ```
-5. Hapus folder `prisma/migrations/` (migrasi SQLite tidak kompatibel dengan Postgres). Set `DATABASE_URL` ke URL direct (5432), lalu:
-   ```bash
-   npx prisma migrate dev --name init
-   npm run db:seed        # opsional, hanya untuk DB kosong
-   ```
-6. Untuk runtime/deploy, set `DATABASE_URL` ke URL pooler (6543).
+- `DATABASE_URL` = **transaction pooler** (port 6543, `?pgbouncer=true`) — dipakai aplikasi saat runtime, termasuk di Vercel.
+- `DIRECT_URL` = **session pooler** (port 5432) — dipakai Prisma CLI untuk migrasi (`prisma.config.ts`). Tidak perlu di Vercel.
+- Ambil keduanya dari Supabase → **Connect → ORMs → Prisma**. Password yang mengandung simbol (`@ # / ?`) harus di-URL-encode.
+- Ubah schema: edit `prisma/schema.prisma` → `npm run db:migrate -- --name <nama>` → commit folder `prisma/migrations/`.
 
 ## Deploy ke Vercel
 
-SQLite tidak cocok di Vercel (filesystem read-only/ephemeral), jadi lakukan langkah Supabase di atas terlebih dahulu.
-
-1. Push repo ke GitHub, lalu import project di Vercel.
-2. Isi **Environment Variables**: `DATABASE_URL` (URL pooler Supabase), `ADMIN_PASSWORD`, `VIEWER_PASSWORD`, `SESSION_SECRET`.
-3. Build command bawaan (`next build`) sudah cukup, karena `postinstall` menjalankan `prisma generate`.
-4. Terapkan migrasi ke database produksi dari lokal: `DATABASE_URL=<url-direct> npx prisma migrate deploy`.
+1. Import repo GitHub di Vercel.
+2. Isi **Environment Variables** (Production & Preview): `DATABASE_URL` (pooler 6543), `ADMIN_PASSWORD`, `VIEWER_PASSWORD`, `SESSION_SECRET`.
+3. Build command bawaan (`next build`) sudah cukup; `postinstall` menjalankan `prisma generate`.
+4. Setiap ada migrasi baru, terapkan dari lokal: `npx prisma migrate deploy` (memakai `DIRECT_URL` di `.env`).
 5. Karena berisi lead scoring internal, pertimbangkan juga **Vercel Deployment Protection** sebagai lapisan tambahan.
 
 ## Struktur

@@ -8,6 +8,7 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Migrasi lewat session pooler (5432); runtime app memakai DATABASE_URL (6543).
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

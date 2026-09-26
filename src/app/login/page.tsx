@@ -2,7 +2,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { DISCLAIMER } from "@/lib/constants";
 import { LoginForm } from "./LoginForm";
 
-export const metadata = { title: "Masuk — Branch Geo-Mapping" };
+export const metadata = { title: "Masuk - Branch Geo-Mapping" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { next } = await searchParams;

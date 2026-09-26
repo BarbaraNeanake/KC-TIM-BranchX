@@ -1,9 +1,8 @@
 // Branch Geo-Mapping Dashboard — Bank Mandiri KCP Jakarta Taman Ismail Marzuki
 //
-// Portabilitas: schema ini sengaja hanya memakai fitur yang didukung SQLite
-// maupun PostgreSQL (enum, Float, DateTime, @default(cuid()), @updatedAt).
-// Untuk pindah ke PostgreSQL/Supabase cukup ganti `provider` dan DATABASE_URL
-// (lihat README).
+// Database: PostgreSQL (Supabase). Schema hanya memakai fitur yang juga
+// didukung SQLite (enum, Float, DateTime, @default(cuid()), @updatedAt),
+// jadi tetap portabel.
 
 generator client {
   provider = "prisma-client"
@@ -11,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 enum EntityType {
