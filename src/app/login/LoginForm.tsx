@@ -1,12 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
+import { markTabLoggedIn } from "@/lib/tabSession";
 import { login } from "./actions";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(login, undefined);
   return (
-    <form action={action} className="space-y-3">
+    <form action={action} onSubmit={markTabLoggedIn} className="space-y-3">
       <input type="hidden" name="next" value={next} />
       <label className="block text-xs font-semibold text-heading" htmlFor="password">
         Password akses

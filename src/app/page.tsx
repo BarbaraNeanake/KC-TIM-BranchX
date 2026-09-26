@@ -1,6 +1,7 @@
 import { Dashboard } from "@/components/Dashboard";
 import { Footer } from "@/components/Footer";
 import { StatsGuide } from "@/components/StatsGuide";
+import { TabSessionGuard } from "@/components/TabSessionGuard";
 import { TopBar } from "@/components/TopBar";
 import { requirePageRole } from "@/lib/auth";
 import { getBranch, getEntitiesView } from "@/lib/entities";
@@ -34,51 +35,53 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1280px]">
-      <header className="rounded-b-[26px] bg-gradient-to-br from-navy to-navy-deep px-5 pb-6 pt-[calc(18px+env(safe-area-inset-top))] text-white">
-        <TopBar role={session.role} current="dashboard" />
-        <div className="lg:flex lg:items-end lg:justify-between lg:gap-8">
-          <div className="max-w-2xl">
-            <h1 className="mb-1.5 text-xl font-extrabold leading-tight lg:text-2xl">
-              Peta Potensi Company, Payroll &amp; Merchant
-            </h1>
-            <p className="mb-3.5 text-[13px] leading-relaxed text-[#CFE0F2]">
-              {branch.name} · {branch.address}. Pemetaan radius {radiusKm} km untuk targeting presisi dan lead scoring
-              tim RM.
-            </p>
+    <TabSessionGuard>
+      <div className="mx-auto max-w-[1280px]">
+        <header className="rounded-b-[26px] bg-gradient-to-br from-navy to-navy-deep px-5 pb-6 pt-[calc(18px+env(safe-area-inset-top))] text-white">
+          <TopBar role={session.role} current="dashboard" />
+          <div className="lg:flex lg:items-end lg:justify-between lg:gap-8">
+            <div className="max-w-2xl">
+              <h1 className="mb-1.5 text-xl font-extrabold leading-tight lg:text-2xl">
+                Peta Potensi Company, Payroll &amp; Merchant
+              </h1>
+              <p className="mb-3.5 text-[13px] leading-relaxed text-[#CFE0F2]">
+                {branch.name} · {branch.address}. Pemetaan radius {radiusKm} km untuk targeting presisi dan lead scoring
+                tim RM.
+              </p>
+            </div>
+            <ul className="flex flex-col gap-[7px] text-[12.5px] text-[#E7F0FA] lg:mb-3.5 lg:shrink-0">
+              <Bullet>
+                <b className="text-white">
+                  {companies.length} company &amp; {merchants} merchant
+                </b>{" "}
+                dalam radius {radiusKm} km
+              </Bullet>
+              <Bullet>
+                Estimasi <b className="text-white">~{fmt(employees)} karyawan</b> berpotensi payroll
+              </Bullet>
+              <Bullet>
+                <b className="text-white">{untapped} company</b> belum tergarap,{" "}
+                <b className="text-white">{highMerchant} merchant</b> prioritas tinggi
+              </Bullet>
+            </ul>
           </div>
-          <ul className="flex flex-col gap-[7px] text-[12.5px] text-[#E7F0FA] lg:mb-3.5 lg:shrink-0">
-            <Bullet>
-              <b className="text-white">
-                {companies.length} company &amp; {merchants} merchant
-              </b>{" "}
-              dalam radius {radiusKm} km
-            </Bullet>
-            <Bullet>
-              Estimasi <b className="text-white">~{fmt(employees)} karyawan</b> berpotensi payroll
-            </Bullet>
-            <Bullet>
-              <b className="text-white">{untapped} company</b> belum tergarap,{" "}
-              <b className="text-white">{highMerchant} merchant</b> prioritas tinggi
-            </Bullet>
-          </ul>
-        </div>
-      </header>
+        </header>
 
-      <section className="grid grid-cols-3 gap-2 px-4 pt-4 sm:grid-cols-5" aria-label="Ringkasan">
-        {stats.map((s) => (
-          <div key={s.l} className="rounded-[14px] bg-surface px-2 py-2.5 text-center shadow-[0_2px_10px_rgba(10,40,80,.06)]">
-            <div className="text-base font-extrabold text-heading lg:text-lg">{s.n}</div>
-            <div className="mt-0.5 text-[10px] font-semibold leading-tight text-ink lg:text-[11.5px]">{s.l}</div>
-            <div className="mt-1 text-[9px] leading-snug text-muted lg:text-[10.5px]">{s.d}</div>
-          </div>
-        ))}
-      </section>
-      <StatsGuide counts={counts} />
+        <section className="grid grid-cols-3 gap-2 px-4 pt-4 sm:grid-cols-5" aria-label="Ringkasan">
+          {stats.map((s) => (
+            <div key={s.l} className="rounded-[14px] bg-surface px-2 py-2.5 text-center shadow-[0_2px_10px_rgba(10,40,80,.06)]">
+              <div className="text-base font-extrabold text-heading lg:text-lg">{s.n}</div>
+              <div className="mt-0.5 text-[10px] font-semibold leading-tight text-ink lg:text-[11.5px]">{s.l}</div>
+              <div className="mt-1 text-[9px] leading-snug text-muted lg:text-[10.5px]">{s.d}</div>
+            </div>
+          ))}
+        </section>
+        <StatsGuide counts={counts} />
 
-      <Dashboard branch={branch} entities={entities} isAdmin={session.role === "admin"} />
-      <Footer />
-    </div>
+        <Dashboard branch={branch} entities={entities} isAdmin={session.role === "admin"} />
+        <Footer />
+      </div>
+    </TabSessionGuard>
   );
 }
 
