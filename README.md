@@ -65,7 +65,7 @@ Aturan import:
 
 ## Keamanan (v1)
 
-- Cookie sesi `httpOnly`, ditandatangani HMAC-SHA256 dengan `SESSION_SECRET`, berlaku 12 jam.
+- Cookie sesi `httpOnly`, ditandatangani HMAC-SHA256 dengan `SESSION_SECRET`. Sesi hilang saat browser ditutup dan maksimal berlaku 8 jam (`SESSION_TTL_S` di `src/lib/session.ts`).
 - `src/proxy.ts` (pengganti middleware di Next 16) mengarahkan pengguna yang belum login ke `/login`. Setiap halaman dan API route juga memverifikasi role sendiri (`src/lib/auth.ts`).
 - Viewer: hanya `GET`. Admin: `/admin`, mutasi API, dan export CSV.
 - Password bersama per role cukup untuk v1. Untuk skala lebih besar, pertimbangkan akun per RM (mis. Supabase Auth / SSO kantor) supaya ada audit trail per orang.

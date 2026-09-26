@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE, SESSION_TTL_S, signSession, type Role } from "@/lib/session";
+import { SESSION_COOKIE, signSession, type Role } from "@/lib/session";
 
 function matchRole(password: string): Role | null {
   const admin = process.env.ADMIN_PASSWORD;
@@ -29,7 +29,8 @@ export async function login(
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_TTL_S,
+    // Tanpa maxAge = session cookie: terhapus saat browser ditutup.
+    // Token di dalamnya tetap kedaluwarsa setelah SESSION_TTL_S.
   });
   // Hanya izinkan redirect ke path internal.
   redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/");

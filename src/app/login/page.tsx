@@ -1,5 +1,4 @@
 import { BrandLogo } from "@/components/BrandLogo";
-import { DISCLAIMER } from "@/lib/constants";
 import { LoginForm } from "./LoginForm";
 
 export const metadata = { title: "Masuk - Branch Geo-Mapping" };
@@ -18,9 +17,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           <LoginForm next={typeof next === "string" ? next : "/"} />
         </div>
         <p className="mt-5 text-center text-[10.5px] leading-relaxed text-[#9FB6D3]">
-          Berisi lead scoring internal. Jangan bagikan password. {DISCLAIMER}
+          Akses terbatas untuk tim internal. Skor dan estimasi bersifat simulasi, bukan data resmi perusahaan maupun
+          hasil SLIK OJK.
         </p>
-      </div>help
+      </div>
     </main>
   );
 }

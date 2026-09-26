@@ -3,7 +3,9 @@
 
 export type Role = "admin" | "viewer";
 export const SESSION_COOKIE = "gm_session";
-export const SESSION_TTL_S = 60 * 60 * 12; // 12 jam
+// Batas maksimum umur token (ditanam di token & dicek server), walau browser
+// tidak ditutup. Cookie-nya sendiri session cookie: hilang saat browser ditutup.
+export const SESSION_TTL_S = 60 * 60 * 8; // 8 jam
 
 const enc = new TextEncoder();
 
