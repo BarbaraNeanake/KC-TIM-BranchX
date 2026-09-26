@@ -1,5 +1,6 @@
 import { Dashboard } from "@/components/Dashboard";
 import { Footer } from "@/components/Footer";
+import { StatsGuide } from "@/components/StatsGuide";
 import { TopBar } from "@/components/TopBar";
 import { requirePageRole } from "@/lib/auth";
 import { getBranch, getEntitiesView } from "@/lib/entities";
@@ -19,12 +20,18 @@ export default async function HomePage() {
   const fmt = (n: number) => n.toLocaleString("id-ID");
 
   const stats = [
-    { n: fmt(entities.length), l: "Entitas" },
-    { n: `~${fmt(employees)}`, l: "Est. karyawan" },
-    { n: fmt(high), l: "Prioritas tinggi" },
-    { n: fmt(untapped), l: "Belum tergarap" },
-    { n: fmt(merchants), l: "Merchant" },
+    { n: fmt(entities.length), l: "Entitas", d: `Company + merchant dalam radius ${radiusKm} km` },
+    { n: `~${fmt(employees)}`, l: "Est. karyawan", d: "Total perkiraan karyawan semua company (potensi payroll)" },
+    { n: fmt(high), l: "Prioritas tinggi", d: "Company & merchant yang didatangi lebih dulu" },
+    { n: fmt(untapped), l: "Belum tergarap", d: "Company tanpa payroll di bank mana pun" },
+    { n: fmt(merchants), l: "Merchant", d: "Toko, kafe, pasar & mal yang dipetakan" },
   ];
+
+  // Jumlah per prioritas & status untuk panel keterangan.
+  const counts: Record<string, number> = {};
+  for (const e of entities) {
+    for (const k of [e.priority, e.payrollStatus, e.paymentStatus]) if (k) counts[k] = (counts[k] ?? 0) + 1;
+  }
 
   return (
     <div className="mx-auto max-w-[1280px]">
@@ -60,12 +67,14 @@ export default async function HomePage() {
 
       <section className="grid grid-cols-3 gap-2 px-4 pt-4 sm:grid-cols-5" aria-label="Ringkasan">
         {stats.map((s) => (
-          <div key={s.l} className="rounded-[14px] bg-surface px-1.5 py-2.5 text-center shadow-[0_2px_10px_rgba(10,40,80,.06)]">
+          <div key={s.l} className="rounded-[14px] bg-surface px-2 py-2.5 text-center shadow-[0_2px_10px_rgba(10,40,80,.06)]">
             <div className="text-base font-extrabold text-heading lg:text-lg">{s.n}</div>
-            <div className="mt-0.5 text-[9.5px] leading-tight text-muted lg:text-[11px]">{s.l}</div>
+            <div className="mt-0.5 text-[10px] font-semibold leading-tight text-ink lg:text-[11.5px]">{s.l}</div>
+            <div className="mt-1 text-[9px] leading-snug text-muted lg:text-[10.5px]">{s.d}</div>
           </div>
         ))}
       </section>
+      <StatsGuide counts={counts} />
 
       <Dashboard branch={branch} entities={entities} isAdmin={session.role === "admin"} />
       <Footer />
