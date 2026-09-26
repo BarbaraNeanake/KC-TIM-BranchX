@@ -1,26 +1,167 @@
 @import "tailwindcss";
 
+/* Token warna mengikuti reference/mandiri-geomapping-cikini.html.
+   Dark mode ikut prefers-color-scheme (default variant `dark:` Tailwind). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --navy: #003d79;
+  --navy-deep: #012a56;
+  --blue: #0f6bc4;
+  --gold: #f2a93b;
+  --gold-2: #f7c15c;
+  --gold-dark: #c9820a;
+  --ink: #101828;
+  --muted: #5d6b82;
+  --line: #e7ecf3;
+  --surface: #ffffff;
+  --bg: #f2f6fb;
+  --high: #f2a93b;
+  --med: #0f6bc4;
+  --low: #a7b4c6;
+  --heading: #003d79;
+  --danger: #c2410c;
+  --gauge-track: #e7ebf1;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --ink: #eaf1fa;
+    --muted: #93a8c4;
+    --line: #22395b;
+    --surface: #132743;
+    --bg: #0d1826;
+    --heading: #cfe0f2;
+    --danger: #fb923c;
+    --gauge-track: #22395b;
+    color-scheme: dark;
   }
 }
 
+@theme inline {
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --color-blue: var(--blue);
+  --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-bg: var(--bg);
+  --color-heading: var(--heading);
+  --color-danger: var(--danger);
+  --color-high: var(--high);
+  --color-med: var(--med);
+  --color-low: var(--low);
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* ---------- Leaflet pins ---------- */
+.pin-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--med);
+  box-shadow: 0 2px 8px rgba(15, 32, 63, 0.25);
+  transition: transform 0.15s ease;
+}
+.pin-badge svg {
+  width: 15px;
+  height: 15px;
+  stroke: #003d79;
+}
+.pin-badge.merchant {
+  border-radius: 8px;
+}
+.pin-badge.anchor {
+  border-style: dashed;
+}
+.pin-badge.prio-HIGH {
+  border-color: var(--high);
+}
+.pin-badge.prio-LOW {
+  border-color: var(--low);
+}
+.pin-wrap:hover .pin-badge {
+  transform: scale(1.18);
+}
+.pin-wrap.selected .pin-badge {
+  box-shadow:
+    0 0 0 4px rgba(242, 169, 59, 0.45),
+    0 2px 8px rgba(15, 32, 63, 0.25);
+}
+.pin-wrap.pulse .pin-badge {
+  animation: pin-pulse 0.5s ease;
+}
+@keyframes pin-pulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.branch-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #003d79;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(11, 37, 69, 0.35);
+  border: 2.5px solid #fff;
+}
+.branch-badge svg {
+  width: 18px;
+  height: 18px;
+}
+.ring-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  background: #0f6bc4;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.leaflet-tooltip {
+  background: #003d79;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.leaflet-tooltip-top:before {
+  border-top-color: #003d79;
+}
+.leaflet-container {
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  background: var(--bg);
+}
+@media (prefers-color-scheme: dark) {
+  /* Redupkan tile OSM agar tidak menyilaukan di dark mode */
+  .leaflet-tile-pane {
+    filter: brightness(0.75) contrast(1.1) saturate(0.8);
+  }
 }

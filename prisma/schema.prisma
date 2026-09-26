@@ -1,0 +1,111 @@
+// Branch Geo-Mapping Dashboard — Bank Mandiri KCP Jakarta Taman Ismail Marzuki
+//
+// Portabilitas: schema ini sengaja hanya memakai fitur yang didukung SQLite
+// maupun PostgreSQL (enum, Float, DateTime, @default(cuid()), @updatedAt).
+// Untuk pindah ke PostgreSQL/Supabase cukup ganti `provider` dan DATABASE_URL
+// (lihat README).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum EntityType {
+  COMPANY
+  MERCHANT
+}
+
+enum EntityIcon {
+  building
+  hospital
+  edu
+  media
+  food
+  retail
+  gold
+  mall
+}
+
+enum Priority {
+  HIGH
+  MED
+  LOW
+}
+
+enum PayrollStatus {
+  BELUM_TERGARAP
+  PROSPEK_HANGAT
+  EXISTING_BANK_LAIN
+  NASABAH_MANDIRI
+}
+
+enum PaymentStatus {
+  BELUM_ADA
+  QRIS_BANK_LAIN
+  EDC_BANK_LAIN
+  SUDAH_MANDIRI
+}
+
+// Dipakai bersama oleh creditPotential (company) & turnoverEstimate (merchant)
+enum Level {
+  TINGGI
+  SEDANG
+  RENDAH
+}
+
+// Konfigurasi cabang. Satu baris untuk v1, tapi disimpan sebagai tabel supaya
+// bisa diedit tanpa deploy ulang dan siap multi-cabang nanti.
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  // TODO: koordinat perkiraan — verifikasi manual di Google Maps.
+  lat       Float
+  lng       Float
+  radiusM   Int      @default(2000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Company/Institusi & Merchant dalam satu tabel (single-table), dengan kolom
+// khusus-tipe yang nullable. Validasi "wajib diisi untuk tipe X" ada di Zod.
+// Jarak ke cabang TIDAK disimpan — dihitung (haversine) saat dibaca.
+model Entity {
+  id        String     @id @default(cuid())
+  name      String
+  type      EntityType
+  category  String
+  icon      EntityIcon
+  address   String
+  lat       Float
+  lng       Float
+  priority  Priority
+  score     Int // 0–100, skor internal simulasi (divalidasi di Zod)
+  profile   String
+
+  // Khusus COMPANY
+  employeeEstimate Int?
+  payrollStatus    PayrollStatus?
+  creditPotential  Level?
+
+  // Khusus MERCHANT
+  paymentStatus    PaymentStatus?
+  turnoverEstimate Level?
+  productFit       String? // mis. "Livin' Merchant, EDC, KUR"
+
+  isAnchor Boolean @default(false) // mall besar di tepi radius, kemungkinan dipegang level korporat
+
+  // Follow-up RM
+  notes   String?
+  picName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([priority])
+}

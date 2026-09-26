@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Peta Potensi Company & Payroll — Cikini-TIM | Bank Mandiri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --navy:#003D79; --navy-deep:#012a56; --blue:#0F6BC4; --gold:#F2A93B; --gold-2:#F7C15C; --gold-dark:#C9820A;
+  --ink:#101828; --muted:#5D6B82; --line:#E7ECF3; --surface:#FFFFFF; --bg:#F2F6FB;
+  --high:#F2A93B; --med:#0F6BC4; --low:#A7B4C6;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:inherit;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);}
+.page{max-width:760px;margin:0 auto;padding:0 0 28px;}
+
+.hero{background:linear-gradient(160deg,var(--navy),var(--navy-deep));color:#fff;padding:22px 20px 26px;padding-top:calc(22px + env(safe-area-inset-top,0px));border-radius:0 0 26px 26px;}
+.brand{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.brand svg{height:34px;width:auto;display:block;}
+.hero h1{margin:0 0 6px;font-size:20px;font-weight:800;line-height:1.3;}
+.hero p{margin:0 0 14px;font-size:13px;color:#CFE0F2;line-height:1.5;}
+.hero ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;}
+.hero li{font-size:12.5px;color:#E7F0FA;display:flex;gap:7px;align-items:flex-start;}
+.hero li b{color:#fff;}
+.check{color:var(--gold);font-weight:800;flex-shrink:0;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px 16px 0;}
+.pill{background:var(--surface);border-radius:14px;padding:10px 6px;text-align:center;box-shadow:0 2px 10px rgba(10,40,80,.06);}
+.pill .n{font-size:16px;font-weight:800;color:var(--navy);}
+.pill .l{font-size:9.5px;color:var(--muted);margin-top:2px;line-height:1.2;}
+
+.card{background:var(--surface);border-radius:20px;margin:14px 16px 0;padding:16px;box-shadow:0 4px 20px rgba(10,40,80,.06);}
+.card h2{font-size:14.5px;margin:0 0 3px;color:var(--navy);}
+.card .sub{font-size:11.5px;color:var(--muted);margin-bottom:12px;}
+
+#map{width:100%;height:340px;border-radius:14px;overflow:hidden;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:10.5px;color:var(--muted);}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+.branch-badge{width:36px;height:36px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(11,37,69,.35);border:2.5px solid #fff;}
+.branch-badge svg{width:18px;height:18px;}
+.pin-badge{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;border:2.5px solid var(--med);box-shadow:0 2px 8px rgba(15,32,63,.25);transition:transform .15s ease;}
+.pin-badge svg{width:15px;height:15px;stroke:var(--navy);}
+.pin-badge.score-high{border-color:var(--high);}
+.pin-badge.score-low{border-color:var(--low);}
+.pin-wrap:hover .pin-badge{transform:scale(1.18);}
+.pin-wrap.pulse .pin-badge{animation:pulse .5s ease;}
+@keyframes pulse{0%{transform:scale(1);}40%{transform:scale(1.4);}100%{transform:scale(1);}}
+.leaflet-tooltip{background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:600;padding:4px 9px;box-shadow:0 4px 10px rgba(0,0,0,.2);}
+.leaflet-tooltip-top:before{border-top-color:var(--navy);}
+
+.controls input{width:100%;font-family:inherit;font-size:13px;padding:10px 13px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin-bottom:9px;}
+.chiprow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{font-size:11px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;}
+.chip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+.entity{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:box-shadow .15s ease,border-color .15s ease;}
+.entity:hover{border-color:var(--blue);box-shadow:0 4px 14px rgba(15,32,63,.08);}
+.e-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+.e-top h3{font-size:13px;margin:0;color:var(--navy);}
+.e-cat{font-size:10.5px;color:var(--muted);margin-top:1px;}
+.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;color:#fff;flex-shrink:0;}
+.badge.high{background:var(--gold-dark);}.badge.med{background:var(--blue);}.badge.low{background:var(--low);}
+.e-meta{display:flex;gap:16px;margin-top:8px;font-size:10.5px;color:var(--muted);}
+.e-meta b{display:block;font-size:12.5px;color:var(--ink);font-weight:700;}
+
+.contact{display:flex;flex-direction:column;gap:10px;}
+.contact-row{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--ink);}
+.contact-row svg{flex-shrink:0;margin-top:1px;}
+.wabtn{display:inline-flex;align-items:center;gap:8px;justify-content:center;background:#25D366;color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:11px 16px;border-radius:12px;margin-top:4px;}
+.footnote{text-align:center;font-size:10.5px;color:var(--muted);padding:16px 16px 0;}
+
+/* bottom sheet report */
+.backdrop{position:fixed;inset:0;background:rgba(4,20,40,.45);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:900;}
+.backdrop.open{opacity:1;pointer-events:auto;}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;background:var(--surface);border-radius:22px 22px 0 0;transform:translateY(100%);transition:transform .32s cubic-bezier(.22,.9,.3,1);z-index:950;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.25);}
+.sheet.open{transform:translateY(0);}
+.sheet-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+.sheet-head .grip{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:36px;height:4px;border-radius:99px;background:var(--line);}
+.closebtn{margin-left:auto;border:1px solid var(--line);background:var(--bg);border-radius:9px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.sheet-head h2{font-size:14.5px;margin:0;color:var(--navy);}
+.sheet-head p{margin:1px 0 0;font-size:11px;color:var(--muted);}
+.sheet-body{padding:18px;overflow-y:auto;}
+.gaugewrap{display:flex;align-items:center;gap:16px;padding:2px 2px 16px;}
+.gaugewrap svg{width:128px;height:74px;}
+.gaugelabel .n{font-size:26px;font-weight:800;color:var(--navy);}
+.gaugelabel .l{font-size:12px;font-weight:700;margin-top:2px;}
+.gaugelabel .sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.section-lbl{font-size:11.5px;font-weight:700;color:var(--navy);margin:14px 0 5px;}
+.profile-txt{font-size:12.5px;line-height:1.55;color:var(--ink);}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:6px;}
+.kv{border:1px solid var(--line);border-radius:12px;padding:10px 12px;}
+.kv .n{font-size:14px;font-weight:800;color:var(--navy);}
+.kv .l{font-size:10px;color:var(--muted);margin-top:1px;}
+.disclaimer{margin-top:16px;font-size:10.5px;color:var(--muted);background:var(--bg);border-radius:12px;padding:10px 12px;line-height:1.5;}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1826; --surface:#132743; --line:#22395B; --ink:#EAF1FA; --muted:#93A8C4;
+  }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div class="brand">
+      <svg viewBox="0 0 210 74"><path d="M14,34 Q105,4 196,34" stroke="#FBE0A0" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M12,44 Q105,14 198,44" stroke="#F7C15C" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M10,54 Q105,24 200,54" stroke="#F2A93B" stroke-width="10" fill="none" stroke-linecap="round"/><text x="105" y="72" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-weight="800" font-size="30" fill="#FFFFFF">mandiri</text></svg>
+    </div>
+    <h1>Peta Potensi Company &amp; Payroll — Cikini-TIM</h1>
+    <p>Pemetaan visual company &amp; merchant di sekitar cabang, radius 2 km, untuk targeting presisi dan lead scoring tim RM.</p>
+    <ul id="heroBullets"></ul>
+  </header>
+
+  <section class="stats-row" id="stats"></section>
+
+  <section class="card">
+    <h2>Peta Zonasi Entitas Korporat</h2>
+    <div class="sub">Titik cabang di pusat · cincin jarak 0,5 km sampai 2 km</div>
+    <div id="map"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--high)"></i>Prioritas tinggi</span>
+      <span><i class="dot" style="background:var(--med)"></i>Prioritas sedang</span>
+      <span><i class="dot" style="background:var(--low)"></i>Prioritas rendah</span>
+      <span><i class="dot" style="background:var(--navy)"></i>Cabang Mandiri</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Daftar Company / Institusi Terdekat</h2>
+    <div class="sub">Ketuk salah satu untuk lihat laporan singkat &amp; skor kelayakan</div>
+    <div class="controls">
+      <input id="search" type="text" placeholder="Cari nama PT / institusi...">
+      <div class="chiprow" id="chips">
+        <div class="chip active" data-f="all">Semua</div>
+        <div class="chip" data-f="high">Prioritas tinggi</div>
+        <div class="chip" data-f="med">Sedang</div>
+        <div class="chip" data-f="low">Rendah</div>
+      </div>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <footer class="card contact">
+    <h2>Hubungi Relationship Manager</h2>
+    <div class="contact-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#003D79" stroke-width="2"><path d="M3 5h18v14H3z"/><path d="M3 7l9 6 9-6"/></svg> RM Payroll Solution — KCP Cikini Raya</div>
+    <div class="contact-row"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#003D79" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg> Jl. Cikini Raya, Menteng, Jakarta Pusat</div>
+    <a class="wabtn" href="#" onclick="return false;">💬 Chat RM via WhatsApp (isi nomor)</a>
+  </footer>
+  <div class="footnote">Data lokasi bersumber dari titik publik sekitar Cikini–Menteng. Estimasi karyawan, status payroll, skor kelayakan &amp; profil bersifat simulasi internal untuk demo lead scoring — bukan data resmi perusahaan bersangkutan.</div>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="report">
+  <div class="sheet-head"><div class="grip"></div>
+    <div><h2 id="rp-name">—</h2><p id="rp-cat">—</p></div>
+    <div class="closebtn" id="closeBtn">✕</div>
+  </div>
+  <div class="sheet-body">
+    <div class="gaugewrap">
+      <svg viewBox="0 0 120 70">
+        <path d="M10,62 A50,50 0 0,1 110,62" stroke="#E7EBF1" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <path id="gaugeArc" d="M10,62 A50,50 0 0,1 110,62" stroke="#F2A93B" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="0 999"/>
+      </svg>
+      <div class="gaugelabel">
+        <div class="n" id="rp-score">—</div>
+        <div class="l" id="rp-scorelabel">—</div>
+        <div class="sub">Skor kelayakan internal (simulasi)</div>
+      </div>
+    </div>
+    <div class="section-lbl">Profil singkat perusahaan</div>
+    <div class="profile-txt" id="rp-profile">—</div>
+    <div class="kv-grid">
+      <div class="kv"><div class="n" id="rp-emp">—</div><div class="l">Estimasi karyawan</div></div>
+      <div class="kv"><div class="n" id="rp-status">—</div><div class="l">Status payroll</div></div>
+      <div class="kv"><div class="n" id="rp-kredit">—</div><div class="l">Potensi kredit usaha</div></div>
+      <div class="kv"><div class="n" id="rp-prio">—</div><div class="l">Prioritas lead</div></div>
+    </div>
+    <div class="disclaimer">Skor, profil, dan potensi kredit usaha di atas adalah simulasi internal untuk demo lead scoring tim RM — bukan hasil BI Checking/SLIK OJK resmi maupun data keuangan resmi perusahaan terkait.</div>
+  </div>
+</div>
+
+<script>
+const CENTER = [-6.1913, 106.8385];
+const ICONS = {
+  building:'<path d="M4 21V4.5A1.5 1.5 0 0 1 5.5 3h8A1.5 1.5 0 0 1 15 4.5V21M4 21h16M9 7h1M9 11h1M9 15h1M12.5 7h1M12.5 11h1M12.5 15h1M15 21v-5h4v5" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+  hospital:'<path d="M4 21V6.5A1.5 1.5 0 0 1 5.5 5H10V3h4v2h4.5A1.5 1.5 0 0 1 20 6.5V21M4 21h16M12 8v6M9 11h6" stroke-width="1.8" fill="none" stroke-linecap="round"/>',
+  edu:'<path d="M2 9l10-5 10 5-10 5-10-5Z" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M6 11v5c0 1.5 3 3 6 3s6-1.5 6-3v-5" stroke-width="1.8" fill="none"/>',
+  media:'<rect x="3" y="5" width="18" height="14" rx="1.5" stroke-width="1.8" fill="none"/><path d="M7 5v14M17 5v14M3 9h4M3 15h4M17 9h4M17 15h4" stroke-width="1.4"/>'
+};
+
+const data = [
+  {name:"PT Harmoni Dinamik Indonesia", cat:"Kantor Korporat", icon:"building", addr:"Jl. Probolinggo, Gondangdia", emp:450, score:"high", status:"Belum Tergarap", lat:-6.196479, lng:106.839025, credit:82, kredit:"Tinggi", profile:"Kantor pusat korporat multi-lini (kesehatan & consumer wellness) di kawasan Gondangdia, menempati gedung kantor milik sendiri dengan skala karyawan tergolong besar untuk area Cikini."},
+  {name:"Primaya Hospital PGI Cikini", cat:"Rumah Sakit", icon:"hospital", addr:"Jl. Raden Saleh Raya 40", emp:800, score:"high", status:"Prospek Hangat", lat:-6.191987, lng:106.841935, credit:88, kredit:"Tinggi", profile:"Rumah sakit umum swasta skala besar dalam jaringan Primaya Hospital, dengan volume pasien dan jumlah tenaga kerja termasuk yang tertinggi di kawasan Cikini."},
+  {name:"Bunda General Hospital Jakarta", cat:"Rumah Sakit", icon:"hospital", addr:"Jl. Teuku Cik Ditiro 21", emp:600, score:"high", status:"Belum Tergarap", lat:-6.196022, lng:106.837189, credit:84, kredit:"Tinggi", profile:"Rumah sakit umum swasta dengan layanan spesialis lengkap di kawasan Menteng, beroperasi 24 jam dengan jumlah staf medis & non-medis yang besar."},
+  {name:"Hasjrat Abadi (HQ Toyota KTI)", cat:"Distributor Otomotif", icon:"building", addr:"Jl. RP. Soeroso 38", emp:350, score:"high", status:"Existing Bank Lain", lat:-6.192056, lng:106.835974, credit:78, kredit:"Sedang", profile:"Kantor pusat distributor utama Toyota untuk kawasan Indonesia Timur, entitas korporat mapan dengan histori bisnis panjang."},
+  {name:"Menteng Mitra Afia Hospital", cat:"Rumah Sakit", icon:"hospital", addr:"Jl. Kalipasir 09", emp:300, score:"med", status:"Belum Tergarap", lat:-6.186967, lng:106.838292, credit:70, kredit:"Sedang", profile:"Rumah sakit swasta menengah dengan layanan rawat inap dan fisioterapi, beroperasi 24 jam."},
+  {name:"STIKES PGI Cikini", cat:"Institusi Pendidikan Kesehatan", icon:"edu", addr:"Kompleks RS PGI Cikini", emp:150, score:"med", status:"Belum Tergarap", lat:-6.190553, lng:106.841608, credit:64, kredit:"Sedang", profile:"Institusi pendidikan tinggi kesehatan (keperawatan) yang menjadi bagian dari kompleks RS PGI Cikini, salah satu pionir pendidikan keperawatan di Indonesia."},
+  {name:"PT Infrastruktur Bisnis Sejahtera", cat:"Kantor Korporat (HQ)", icon:"building", addr:"Jl. Cikini Raya 12-14", emp:220, score:"med", status:"Prospek Hangat", lat:-6.189072, lng:106.837112, credit:68, kredit:"Sedang", profile:"Kantor pusat korporat penyedia layanan bisnis & infrastruktur, menempati gedung kantor milik sendiri di jalur utama Cikini Raya."},
+  {name:"Biogreen Science Head Office", cat:"Korporat / Training Center", icon:"building", addr:"Jl. Cikini Raya 58Q", emp:180, score:"med", status:"Belum Tergarap", lat:-6.193799, lng:106.838451, credit:66, kredit:"Sedang", profile:"Kantor pusat sekaligus training center perusahaan produk kesehatan & kecantikan berjejaring."},
+  {name:"PT Rapi Films", cat:"Media & Produksi Film", icon:"media", addr:"Jl. Cikini II No.7A", emp:120, score:"med", status:"Belum Tergarap", lat:-6.191070, lng:106.836845, credit:60, kredit:"Sedang", profile:"Salah satu rumah produksi film tertua di Indonesia, mengoperasikan kantor produksi dan distribusi di Cikini."},
+  {name:"Gedung GKM (HQ Oxygen.id)", cat:"Kantor Korporat / Retail Telco", icon:"building", addr:"Jl. Cikini Raya 12", emp:140, score:"med", status:"Prospek Hangat", lat:-6.189066, lng:106.837455, credit:62, kredit:"Sedang", profile:"Kantor pusat pemain retail telekomunikasi (Oxygen.id) dalam gedung perkantoran kecil di jalur CBD Cikini."},
+  {name:"PT Intertek Utama Services", cat:"Testing & Inspection (MNC)", icon:"building", addr:"Jl. Cikini IV No.2", emp:90, score:"low", status:"Existing Bank Lain", lat:-6.192840, lng:106.838209, credit:58, kredit:"Sedang", profile:"Kantor cabang perusahaan jasa inspeksi, pengujian, dan sertifikasi multinasional."},
+  {name:"PT Karunia Berca Indonesia", cat:"Software & Kontraktor", icon:"building", addr:"Jl. Cikini Raya 95", emp:60, score:"low", status:"Belum Tergarap", lat:-6.194265, lng:106.839772, credit:48, kredit:"Rendah", profile:"Perusahaan kontraktor dan pengembang software skala kecil-menengah."}
+];
+
+const map = L.map('map', {zoomControl:true, minZoom:13, maxZoom:19}).setView(CENTER, 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+[500,1000,1500,2000].forEach(r=>{
+  L.circle(CENTER, {radius:r, color:'#0F6BC4', weight:1.5, opacity:.55, dashArray:'4 6', fill:false}).addTo(map);
+});
+
+L.marker(CENTER, {icon:L.divIcon({className:'', html:'<div class="branch-badge"><svg viewBox="0 0 24 24"><path d="M12 2 C17 2 21 6 21 11 C21 16.5 16.5 20 12 22 C7.5 20 3 16.5 3 11 C3 6 7 2 12 2 Z" fill="#F2A93B"/></svg></div>', iconSize:[36,36], iconAnchor:[18,18]})})
+  .addTo(map).bindTooltip('KCP Cikini Raya', {direction:'top', offset:[0,-20]});
+
+const markers = {};
+data.forEach(d=>{
+  const el = L.divIcon({className:'', html:`<div class="pin-wrap"><div class="pin-badge score-${d.score}"><svg viewBox="0 0 24 24" stroke="#003D79">${ICONS[d.icon]}</svg></div></div>`, iconSize:[30,30], iconAnchor:[15,15]});
+  const m = L.marker([d.lat,d.lng], {icon:el}).addTo(map).bindTooltip(d.name, {direction:'top', offset:[0,-15]});
+  m.on('click', ()=>{ pulse(m); openReport(d.name); });
+  markers[d.name] = m;
+});
+
+function pulse(m){
+  const el = m.getElement(); if(!el) return;
+  const wrap = el.querySelector('.pin-wrap');
+  wrap.classList.remove('pulse'); void wrap.offsetWidth; wrap.classList.add('pulse');
+}
+
+const scoreLabel = {high:'Tinggi', med:'Sedang', low:'Rendah'};
+
+function renderHero(){
+  const total = data.length, totalEmp = data.reduce((s,d)=>s+d.emp,0);
+  const high = data.filter(d=>d.score==='high').length;
+  const untapped = data.filter(d=>d.status==='Belum Tergarap').length;
+  document.getElementById('heroBullets').innerHTML = `
+    <li><span class="check">✓</span> <b>${total} entitas korporat</b>&nbsp;teridentifikasi dalam radius 2 km</li>
+    <li><span class="check">✓</span> Estimasi&nbsp;<b>~${totalEmp.toLocaleString('id-ID')} karyawan</b>&nbsp;berpotensi payroll</li>
+    <li><span class="check">✓</span> <b>${untapped} entitas</b>&nbsp;berstatus belum tergarap, <b>${high}</b> masuk prioritas tinggi</li>`;
+  document.getElementById('stats').innerHTML = `
+    <div class="pill"><div class="n">${total}</div><div class="l">Entitas</div></div>
+    <div class="pill"><div class="n">~${totalEmp.toLocaleString('id-ID')}</div><div class="l">Est. karyawan</div></div>
+    <div class="pill"><div class="n">${high}</div><div class="l">Prioritas tinggi</div></div>
+    <div class="pill"><div class="n">${untapped}</div><div class="l">Belum tergarap</div></div>`;
+}
+
+function renderList(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const f = document.querySelector('.chip.active').dataset.f;
+  const filtered = data.filter(d => (d.name.toLowerCase().includes(q) || d.cat.toLowerCase().includes(q)) && (f==='all' || d.score===f));
+  const list = document.getElementById('list');
+  list.innerHTML = filtered.length ? filtered.map(d=>`
+    <div class="entity" data-name="${d.name}">
+      <div class="e-top">
+        <div><h3>${d.name}</h3><div class="e-cat">${d.cat}</div></div>
+        <span class="badge ${d.score}">${scoreLabel[d.score]}</span>
+      </div>
+      <div class="e-meta"><div><b>~${d.emp}</b>karyawan</div><div><b>${d.credit}</b>skor internal</div></div>
+    </div>`).join('') : '<div class="e-cat" style="padding:16px 4px">Tidak ada hasil.</div>';
+  list.querySelectorAll('.entity').forEach(c => c.addEventListener('click', ()=>{
+    openReport(c.dataset.name);
+    const m = markers[c.dataset.name]; if(m){ map.panTo(m.getLatLng()); pulse(m); }
+  }));
+}
+
+function openReport(name){
+  const d = data.find(x=>x.name===name); if(!d) return;
+  document.getElementById('rp-name').textContent = d.name;
+  document.getElementById('rp-cat').textContent = d.cat + ' · ' + d.addr;
+  document.getElementById('rp-score').textContent = d.credit;
+  const lbl = d.credit>=75 ? 'Sangat baik' : d.credit>=55 ? 'Cukup baik' : 'Perlu verifikasi lanjutan';
+  const col = d.credit>=75 ? '#F2A93B' : d.credit>=55 ? '#0F6BC4' : '#A7B4C6';
+  document.getElementById('rp-scorelabel').textContent = lbl;
+  document.getElementById('rp-scorelabel').style.color = col;
+  const arc = (d.credit/100)*157.08;
+  document.getElementById('gaugeArc').setAttribute('stroke-dasharray', arc+' 999');
+  document.getElementById('gaugeArc').setAttribute('stroke', col);
+  document.getElementById('rp-profile').textContent = d.profile;
+  document.getElementById('rp-emp').textContent = '~'+d.emp;
+  document.getElementById('rp-status').textContent = d.status;
+  document.getElementById('rp-kredit').textContent = d.kredit;
+  document.getElementById('rp-prio').textContent = scoreLabel[d.score];
+  document.getElementById('report').classList.add('open');
+  document.getElementById('backdrop').classList.add('open');
+}
+function closeReport(){
+  document.getElementById('report').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('open');
+}
+document.getElementById('closeBtn').addEventListener('click', closeReport);
+document.getElementById('backdrop').addEventListener('click', closeReport);
+
+document.getElementById('search').addEventListener('input', renderList);
+document.getElementById('chips').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip')) return;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  e.target.classList.add('active');
+  renderList();
+});
+
+renderHero();
+renderList();
+</script>
+</body>
+</html>
